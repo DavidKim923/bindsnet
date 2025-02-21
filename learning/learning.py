@@ -243,6 +243,9 @@ class PSTDP(LearningRule):
             # mask.index_fill_(0, valid_t, True)
             # pbp_update.mul_(mask.float())
             
+            if len(source_s_i) > 1:
+                pbp_update[source_s_i] -= 1
+            
             self.connection.w[source_s_i] = self.connection.w[source_s_i].add_(pap_update*self.nu[1]).sub_(pbp_update*self.nu[0]).clamp_(min=self.connection.wmin, max=self.connection.wmax)
             
         # postsynaptic event
@@ -428,6 +431,8 @@ class STDPPLUSE(LearningRule):
             target_x = self.target.x.squeeze(0)*self.nu[0][:len(self.target.x.squeeze(0))]
             source_s_i = (source_s==1).nonzero().squeeze(1)
             if len(source_s_i)!= 0:
+                if len(source_s_i) > 1:
+                    target_x[source_s_i[source_s_i<len(target_x)]] -= self.nu[0][source_s_i[source_s_i<len(target_x)]]
                 self.connection.w[source_s_i] = self.connection.w[source_s_i].sub_(target_x).clamp_(min=self.connection.wmin, max=self.connection.wmax)
         
             del source_s, target_x
@@ -581,6 +586,8 @@ class STDP0E(LearningRule):
             target_x = self.target.x.squeeze(0)*self.nu[0]
             source_s_i = (source_s==1).nonzero().squeeze(1)
             if len(source_s_i)!= 0:
+                if len(source_s_i) > 1:
+                    target_x[source_s_i[source_s_i<len(target_x)]] -= self.nu[0]
                 self.connection.w[source_s_i] = self.connection.w[source_s_i].sub_(target_x).clamp_(min=self.connection.wmin, max=self.connection.wmax)
         
             del source_s, target_x
@@ -954,19 +961,28 @@ class PostPre(LearningRule):
             source_s = self.source.s.squeeze(0).float()
             target_x = self.target.x.squeeze(0)*self.nu[0]
             # print(len(source_s), len(target_x))
+            # print(target_x[211])
             source_s_i = (source_s==1).nonzero().squeeze(1)
             if len(source_s_i)!= 0:
+                if len(source_s_i) > 1:
+                    target_x[source_s_i] -= self.nu[0]
                 self.connection.w[source_s_i] = self.connection.w[source_s_i].sub_(target_x).clamp_(min=self.connection.wmin, max=self.connection.wmax)
-        
             del source_s, target_x
 
         # Post-synaptic update.
         if self.nu[1].any():
             source_x = self.source.x.squeeze(0)*self.nu[1]
-            
+
+            # print(self.source.x.squeeze(0))
             # source_x = self.source.x
             target_s = self.target.s.squeeze(0).float()
             target_s_i = (target_s==1).nonzero().squeeze(1)
+
+            #########################
+            # if len(target_s_i) > 1:
+            #     source_x[target_s_i] -= self.nu[1]
+            ###################
+                
             if len(target_s_i) != 0:
                 self.connection.w.T[target_s_i] = self.connection.w.T[target_s_i].add_(source_x).clamp_(min=self.connection.wmin, max=self.connection.wmax)
 

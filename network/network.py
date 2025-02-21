@@ -450,9 +450,11 @@ class Network(torch.nn.Module):
             #         flad_p = True
                 # print("Update learning rule..")
                 # print(str(self.learning))
+                # print("Current time:", (t+1)*self.dt/1000)
                 self.connections[c].update(
                     mask=masks.get(c, None), learning=self.learning, **kwargs
                 )
+                
             #     if flad_m:
             #         kwargs.pop("a_minus")
             #     if flad_p:
@@ -464,7 +466,15 @@ class Network(torch.nn.Module):
             # Record state variables of interest.
             # for m in self.monitors:
             #     self.monitors[m].record()
-
+            
+            
+            
+            # for l in self.layers:
+            #     self.layers[l].trace_update()
+        
+        
+        
+        
         # Re-normalize connections.
         # for c in self.connections:
         #     self.connections[c].normalize()

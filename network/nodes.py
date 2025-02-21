@@ -96,17 +96,25 @@ class Nodes(torch.nn.Module):
         
         if self.traces:
             # Decay and set spike traces.
+            # print("time step decay value: ", self.trace_decay)
             self.x *= self.trace_decay
             if self.traces_additive:
-                self.x += self.trace_scale * self.s.squeeze()
-                pass
+               self.x += self.trace_scale * self.s.squeeze()
+               pass
             else:
-                self.x.masked_fill_(self.s.bool(), self.trace_scale)
+               self.x.masked_fill_(self.s.bool(), self.trace_scale)
                 
         if self.sum_input:
             # Add current input to running sum.
             self.summed += x.float()
 
+    def trace_update(self):
+        if self.traces_additive:
+            self.x += self.trace_scale * self.s.squeeze()
+            pass
+        else:
+            self.x.masked_fill_(self.s.bool(), self.trace_scale)
+            
     def reset_state_variables(self) -> None:
         # language=rst
         """
